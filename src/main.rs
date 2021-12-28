@@ -1,8 +1,21 @@
 use regex::Regex;
+use clap::{App, Arg};
 
 fn main() {
+	let args = App::new("VeryLiteGrep")
+		.version("1.0")
+		.about("Searches for stuff. There are plenty of good stuff, this is just for learning purposes")
+		.arg(Arg::with_name("pattern")
+			.help("Pattern is what we will use to find stuff for you in text.")
+			.takes_value(true)
+			.required(true)
+		)
+		.get_matches();
 
-	let re = Regex::new("face").unwrap();
+	let pattern = args.value_of("pattern").unwrap();
+	println!("pattern : {:?}", pattern);
+		
+	let re = Regex::new(pattern).unwrap();
 
 
 	let context_lines_amount = 2;
