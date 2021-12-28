@@ -2,7 +2,7 @@ use regex::Regex;
 
 fn main() {
 
-	let re = Regex::new("seek").unwrap();
+	let re = Regex::new("face").unwrap();
 
 
 	let context_lines_amount = 2;
@@ -30,7 +30,7 @@ fn main() {
 				} else {
 					line + context_lines_amount
 				};
-				
+
 				results.push((line, lower_bound, upper_bound));
 			},
 			None => (),
