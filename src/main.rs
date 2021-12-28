@@ -3,6 +3,7 @@ use clap::{App, Arg};
 use std::fs::File;
 use std::io::BufReader;
 use std::io::prelude::*;
+use colored::*;
 
 fn main() {
 	
@@ -36,8 +37,8 @@ fn get_user_defined_pattern() -> String {
 	pattern.to_string()
 }
 
-fn get_search_results(regexp: Regex, text: &Vec<String>) -> Vec<(usize, usize, usize)> {
-	let mut results: Vec<(usize, usize, usize)> = vec![];
+fn get_search_results(regexp: Regex, text: &Vec<String>) -> Vec<(usize, usize, usize, &String)> {
+	let mut results: Vec<(usize, usize, usize, &String)> = vec![];
 	let context_lines_amount = 2;
 	let lines_count = text.len();
 
@@ -46,6 +47,7 @@ fn get_search_results(regexp: Regex, text: &Vec<String>) -> Vec<(usize, usize, u
 
 		match found_re {
 			Some(_) => {
+				let hit_text = line;
 				let line = index + 1;
 				let lower_bound = line.saturating_sub(context_lines_amount + 1);
 				let upper_bound = if (line + context_lines_amount) > lines_count {
@@ -54,7 +56,7 @@ fn get_search_results(regexp: Regex, text: &Vec<String>) -> Vec<(usize, usize, u
 					line + context_lines_amount
 				};
 
-				results.push((line, lower_bound, upper_bound));
+				results.push((line, lower_bound, upper_bound, hit_text));
 			},
 			None => (),
 		}
@@ -63,12 +65,26 @@ fn get_search_results(regexp: Regex, text: &Vec<String>) -> Vec<(usize, usize, u
 	results
 }
 
-fn print_results_to_console(text: &Vec<String>, search_results: Vec<(usize, usize, usize)>) {
-	for (_, (_, lower_bound, upper_bound)) in search_results.iter().enumerate() {
+fn print_results_to_console(text: &Vec<String>, search_results: Vec<(usize, usize, usize, &String)>) {
+	for (_, (_, lower_bound, upper_bound, hit_text)) in search_results.iter().enumerate() {
 		let sliced = text[*lower_bound..*upper_bound].iter().enumerate();
 
 		for (line_index, line_text) in sliced {
-			println!("Line {}: {}", line_index + 1, line_text.trim());
+
+			let line_message = get_line_message(line_index, *hit_text == line_text, line_text);
+			println!("{}", line_message);
 		}
 	}
+}
+
+fn get_line_message(line_number: usize, is_primary_line: bool, text: &String) -> String {
+	let prefix = String::from(format!("L{}", line_number));
+
+	let line_announce = if is_primary_line {
+		String::from(format!("{}: {}", prefix.blue(), text.trim()))
+	} else {
+		String::from(format!("{}: {}", prefix.bright_blue(), text.trim()))
+	};
+
+	line_announce.to_string()
 }
