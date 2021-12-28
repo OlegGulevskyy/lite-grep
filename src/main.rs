@@ -1,7 +1,7 @@
 use regex::Regex;
 use clap::{App, Arg};
 
-fn main() {
+fn get_user_defined_pattern() -> String {
 	let args = App::new("VeryLiteGrep")
 		.version("1.0")
 		.about("Searches for stuff. There are plenty of good stuff, this is just for learning purposes")
@@ -13,26 +13,16 @@ fn main() {
 		.get_matches();
 
 	let pattern = args.value_of("pattern").unwrap();
-	println!("pattern : {:?}", pattern);
-		
-	let re = Regex::new(pattern).unwrap();
+	pattern.to_string()
+}
 
-
-	let context_lines_amount = 2;
-	let haystack = "\
-		Every face, every shop,
-		bedroom window, public-house, and
-		dark square is a picture
-		feverishly turned--in search of what?
-		It is the same with books.
-		What do we seek
-		through millions of pages?";
-
+fn get_search_results(regexp: Regex, text: &str) -> Vec<(usize, usize, usize)> {
 	let mut results: Vec<(usize, usize, usize)> = vec![];
-	let lines_count = haystack.lines().count();
+	let context_lines_amount = 2;
+	let lines_count = text.lines().count();
 
-	for (index, line) in haystack.lines().enumerate() {
-		let found_re = re.find(line);
+	for (index, line) in text.lines().enumerate() {
+		let found_re = regexp.find(line);
 
 		match found_re {
 			Some(_) => {
@@ -50,17 +40,39 @@ fn main() {
 		}
 	}
 
-	if results.is_empty() {
-		return;
-	}
+	results
+}
 
-	let lines: Vec<(usize, &str)> = haystack.lines().enumerate().map(|(index, item)|(index, item)).collect();
+fn print_results_to_console(text: &str, search_results: Vec<(usize, usize, usize)>) {
+	let lines: Vec<(usize, &str)> = text.lines().enumerate().map(|(index, item)|(index, item)).collect();
 
-	for (_, (_, lower_bound, upper_bound)) in results.iter().enumerate() {
+	for (_, (_, lower_bound, upper_bound)) in search_results.iter().enumerate() {
 		let sliced = &lines[*lower_bound..*upper_bound];
 
 		for (line_index, line_text) in sliced {
 			println!("Line {}: {}", line_index + 1, line_text.trim());
 		}
 	}
+}
+
+fn main() {
+	
+	let pattern = get_user_defined_pattern();
+	let re = Regex::new(&pattern).unwrap();
+	
+	let haystack = "\
+		Every face, every shop,
+		bedroom window, public-house, and
+		dark square is a picture
+		feverishly turned--in search of what?
+		It is the same with books.
+		What do we seek
+		through millions of pages?";
+
+	let search_results = get_search_results(re, haystack);
+	if search_results.is_empty() {
+		return;
+	}
+
+	print_results_to_console(haystack, search_results);
 }
