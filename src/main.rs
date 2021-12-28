@@ -1,5 +1,30 @@
 use regex::Regex;
 use clap::{App, Arg};
+use std::fs::File;
+use std::io::BufReader;
+use std::io::prelude::*;
+
+fn main() {
+	
+	let pattern = get_user_defined_pattern();
+	let re = Regex::new(&pattern).unwrap();
+	
+	let haystack = "\
+		Every face, every shop,
+		bedroom window, public-house, and
+		dark square is a picture
+		feverishly turned--in search of what?
+		It is the same with books.
+		What do we seek
+		through millions of pages?";
+
+	let search_results = get_search_results(re, haystack);
+	if search_results.is_empty() {
+		return;
+	}
+
+	print_results_to_console(haystack, search_results);
+}
 
 fn get_user_defined_pattern() -> String {
 	let args = App::new("VeryLiteGrep")
@@ -53,26 +78,4 @@ fn print_results_to_console(text: &str, search_results: Vec<(usize, usize, usize
 			println!("Line {}: {}", line_index + 1, line_text.trim());
 		}
 	}
-}
-
-fn main() {
-	
-	let pattern = get_user_defined_pattern();
-	let re = Regex::new(&pattern).unwrap();
-	
-	let haystack = "\
-		Every face, every shop,
-		bedroom window, public-house, and
-		dark square is a picture
-		feverishly turned--in search of what?
-		It is the same with books.
-		What do we seek
-		through millions of pages?";
-
-	let search_results = get_search_results(re, haystack);
-	if search_results.is_empty() {
-		return;
-	}
-
-	print_results_to_console(haystack, search_results);
 }
